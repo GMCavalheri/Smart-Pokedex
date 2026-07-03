@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokédex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/pokedex.css' %}" />
+</head>
+<body>
+
+  <!-- ── SCAN LINES (atmosfera CRT) ── -->
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- ══════════════ SHELL DA POKÉDEX ══════════════ -->
+  <div class="pokedex-shell">
+
+    <!-- ── PAINEL ESQUERDO ── -->
+    <div class="panel panel--left">
+
+      <!-- Câmera / olho superior -->
+      <div class="camera-cluster">
+        <div class="camera-eye">
+          <div class="camera-inner"></div>
+          <div class="camera-shine"></div>
+        </div>
+        <div class="indicator-row">
+          <span class="dot dot--red blink"></span>
+          <span class="dot dot--yellow"></span>
+          <span class="dot dot--green"></span>
+        </div>
+      </div>
+
+      <!-- Tela principal -->
+      <div class="screen-bezel">
+        <div class="screen-inner">
+          <!-- Cabeçalho da tela -->
+          <div class="screen-header">
+            <span class="screen-label">POKÉDEX</span>
+            <span class="screen-count">
+              {% if pokemons %}{{ pokemons|length }}/151{% else %}000/151{% endif %}
+            </span>
+          </div>
+
+          <!-- Lista de Pokémons -->
+          <ul class="pokemon-list" id="pokemonList">
+            {% for pokemon in pokemons %}
+            <li class="pokemon-card">
+              <a href="{% url 'pokemon_detail' pokemon.id %}" class="pokemon-link">
+
+                <div class="pokemon-sprite-wrap">
+                  <img
+                    src="{{ pokemon.sprite_url }}"
+                    alt="{{ pokemon.name }}"
+                    class="pokemon-sprite"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div class="pokemon-info">
+                  <span class="pokemon-number">#{{ pokemon.id|stringformat:"03d" }}</span>
+                  <span class="pokemon-name">{{ pokemon.name }}</span>
+                  <div class="pokemon-types">
+                    {% for type in pokemon.types %}
+                    <span class="type-badge type--{{ type }}">{{ type }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="pokemon-stats-mini">
+                  <div class="stat-bar-wrap">
+                    <span class="stat-label">HP</span>
+                    <div class="stat-bar">
+                      <div class="stat-fill stat-fill--hp" style="width: {{ pokemon.hp_percent }}%"></div>
+                    </div>
+                  </div>
+                  <div class="stat-bar-wrap">
+                    <span class="stat-label">ATK</span>
+                    <div class="stat-bar">
+                      <div class="stat-fill stat-fill--atk" style="width: {{ pokemon.atk_percent }}%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <span class="arrow-icon" aria-hidden="true">▶</span>
+              </a>
+            </li>
+            {% empty %}
+            <!-- Estado vazio: exibido quando não há dados -->
+            <li class="empty-state">
+              <div class="empty-icon">?</div>
+              <p class="empty-title">Nenhum Pokémon encontrado</p>
+              <p class="empty-sub">Conecte-se à PokéAPI para carregar os dados.</p>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <!-- Rodapé da tela -->
+          <div class="screen-footer">
+            <span class="footer-text">▲▼ NAVEGAR  &nbsp;  ● SELECIONAR</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decoração inferior esquerdo -->
+      <div class="deco-strip">
+        <div class="dpad">
+          <div class="dpad-h"></div>
+          <div class="dpad-v"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DOBRADIÇA ── -->
+    <div class="hinge">
+      <div class="hinge-bolt"></div>
+      <div class="hinge-bolt"></div>
+    </div>
+
+    <!-- ── PAINEL DIREITO ── -->
+    <div class="panel panel--right">
+
+      <!-- Tela auxiliar / decorativa -->
+      <div class="aux-screen-bezel">
+        <div class="aux-screen">
+          <p class="aux-label">STATUS</p>
+          <div class="aux-bars">
+            <div class="aux-bar-row"><span>SIG</span><div class="aux-bar-fill" style="width:88%"></div></div>
+            <div class="aux-bar-row"><span>PWR</span><div class="aux-bar-fill" style="width:72%"></div></div>
+            <div class="aux-bar-row"><span>NET</span><div class="aux-bar-fill" style="width:95%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões decorativos -->
+      <div class="btn-cluster">
+        <button class="btn-round btn--red" aria-label="A" tabindex="-1">A</button>
+        <button class="btn-round btn--blue" aria-label="B" tabindex="-1">B</button>
+      </div>
+
+      <!-- Texto decorativo lateral -->
+      <div class="side-text">
+        <span>PROF. GABRIEL LABS</span>
+        <span>MODEL LEVVA-26</span>
+      </div>
+
+      <!-- Speaker grill -->
+      <div class="speaker" aria-hidden="true">
+        <div class="speaker-grid">
+          {% for i in "123456789012345678" %}
+          <div class="speaker-dot"></div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── REFLEXO DE CHÃO ── -->
+  <div class="floor-reflection" aria-hidden="true"></div>
+
+</body>
+</html>
