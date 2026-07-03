@@ -96,7 +96,7 @@ pokedex_inteligente/
 │   └── templates/
 │       └── pokemon_detail.html
 
-├── pokemon_detail/              # App de detalhe e consulta
+├── pokemon_query/              # App de consulta e LLM
 │   ├── views.py                # Views pokemon_query
 │   ├── urls.py
 │   ├── openrouter.py           # Integração com a API do OpenRouter
