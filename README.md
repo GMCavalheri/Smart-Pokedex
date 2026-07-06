@@ -129,7 +129,7 @@ pokedex_inteligente/
 **1. Clone o repositório**
 
 ```bash
-git clone https://github.com/GMCavalheri/Desafio-Tecnico---Estagio-em-Engenharia-de-Software-levva
+git clone https://github.com/GMCavalheri/Desafio-Tecnico---Estagio-em-Engenharia-de-Software-levva pokedex-inteligente
 cd pokedex-inteligente
 ```
 
@@ -151,15 +151,16 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**4. Configure as variáveis de ambiente**
-
-Crie um arquivo `.env` na raiz do projeto (veja a seção [Variáveis de Ambiente](#variáveis-de-ambiente)).
-
-**5. Execute as migrações**
+**4. Execute as migrações**
 
 ```bash
 python manage.py migrate
 ```
+
+**5. Configure as variáveis de ambiente (opcional atualmente)**
+
+Crie um arquivo `.env` na raiz do projeto (veja a seção [Variáveis de Ambiente](#variáveis-de-ambiente)).
+
 
 ---
 
@@ -174,6 +175,8 @@ Acesse no navegador: [http://127.0.0.1:8000/home/](http://127.0.0.1:8000/home/)
 ---
 
 ## Variáveis de Ambiente
+
+Essas variáveis de ambiente já foram configuradas por padrão, para facilitar os testes em diferentes computadores. Porém, é possível alterá-las, como mostrado abaixo. É considerado uma boa prática.
 
 Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
