@@ -14,8 +14,9 @@ A visual web application built with Django, HTML and CSS that displays Pokémon 
 - [Technical Decisions](#technical-decisions)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
-- [Installation and Setup](#installation-and-setup)
-- [Running Locally](#running-locally)
+- [Running with Docker](#running-with-docker)
+- [Installation and Setup (without Docker)](#installation-and-setup-without-docker)
+- [Running Locally (without Docker)](#running-locally-without-docker)
 - [Environment Variables](#environment-variables)
 
 ---
@@ -27,7 +28,7 @@ The Smart Pokédex is made up of two main pages:
 - **Pokédex (`/home/`)** — a visual list of Pokémon with sprite, types and attribute bars, consuming real-time data from the PokéAPI.
 - **Detail (`/pokemon/<id>/`)** — a full profile of the selected Pokémon, with a query area where the user can ask an LLM questions and see the model's generated answer.
 
-![Analysis page](/imgs/Pokedex_analise.png)
+![Analysis page](/imgs/pokedex_analise.png)
 
 ---
 
@@ -54,6 +55,7 @@ The Smart Pokédex is made up of two main pages:
 | Django Sessions | Passing data between views via POST/redirect/GET |
 | MySQL | Relational database (via PyMySQL) |
 | Redis | Caching layer for PokéAPI responses |
+| Docker + Docker Compose | Containerized app, database and cache for a one-command setup |
 
 ---
 
@@ -85,6 +87,9 @@ The project uses MySQL as its relational database, connected through `PyMySQL` �
 
 ### Redis cache for PokéAPI responses
 The home page originally fetched all 151 Pokémon from the PokéAPI sequentially, one HTTP request at a time, on every single page load — around 18 seconds per load in testing. `pokedex/services/pokeapi.py` now checks Redis (via Django's built-in cache framework, `django.core.cache.backends.redis.RedisCache`) before making a request, and caches the parsed result for 24 hours (a Pokémon's base stats/types/sprite essentially never change). After the first load, subsequent loads read entirely from Redis — down to tens of milliseconds. Redis connection settings (`REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`) come from the `.env` file.
+
+### Containerized with Docker Compose
+Three services run together: `web` (this Django app), `db` (MySQL) and `redis` (Redis). `db` and `redis` don't publish ports to the host — only `web` does — since only `web` needs to reach them, and this avoids clashing with any MySQL/Redis you may already have running locally. `web` waits for `db` and `redis` to report healthy (via Compose's `depends_on: condition: service_healthy`) before starting, and `entrypoint.sh` runs `manage.py migrate` automatically on every container start, so the schema is always up to date. Host/port values for `DB_HOST`/`REDIS_HOST` are overridden directly in `docker-compose.yml` (to the service names `db`/`redis`) rather than taken from `.env`, since `.env`'s `127.0.0.1` only makes sense for running the app outside Docker.
 
 ---
 
@@ -120,8 +125,11 @@ pokedex/
 │           ├── pokedex.css
 │           └── pokemon_detail.css
 │
-├── .env                        # Environment variables (not versioned)
-├── .env.example                # Template for .env
+├── .env                # Environment variables (not versioned)
+├── .env.example        # Template for .env
+├── Dockerfile          # Image for the web service
+├── entrypoint.sh       # Runs migrations, then starts the app
+├── docker-compose.yml  # Wires up web + MySQL + Redis
 ├── requirements.txt
 └── manage.py
 ```
@@ -130,16 +138,60 @@ pokedex/
 
 ## Prerequisites
 
-- Python 3.10 or higher
 - Git
-- pip
-- A running MySQL server and a running Redis server (a `docker-compose` setup for both is coming in a later step)
 - An account and API key from [OpenRouter](https://openrouter.ai/)
 - Internet connection (to consume the PokéAPI and OpenRouter)
+- **To run with Docker (recommended):** Docker and Docker Compose
+- **To run without Docker:** Python 3.10+, pip, a running MySQL server and a running Redis server
 
 ---
 
-## Installation and Setup
+## Running with Docker
+
+This is the fastest way to get everything running — Django, MySQL and Redis — with a single command, no local Python or database setup required.
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/GMCavalheri/Desafio-Tecnico---Estagio-em-Engenharia-de-Software-levva pokedex-inteligente
+cd pokedex-inteligente
+```
+
+**2. Configure environment variables**
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and fill in `SECRET_KEY`, `OPENROUTER_API_KEY`, and set your own `DB_PASSWORD`/`DB_ROOT_PASSWORD` (see [Environment Variables](#environment-variables)). You can leave `DB_HOST`/`REDIS_HOST` as-is — `docker-compose.yml` overrides them automatically for the containers.
+
+**3. Build and start everything**
+
+```bash
+docker compose up --build
+```
+
+This builds the app image, starts `db` (MySQL) and `redis`, waits for both to be healthy, then starts `web` — which runs migrations automatically before serving.
+
+Open in your browser: [http://127.0.0.1:8000/home/](http://127.0.0.1:8000/home/)
+
+**4. Stop everything**
+
+```bash
+docker compose down
+```
+
+Add `-v` (`docker compose down -v`) if you also want to wipe the MySQL data volume.
+
+**Made a code change?** Rebuild the image so it's picked up:
+
+```bash
+docker compose up --build
+```
+
+---
+
+## Installation and Setup (without Docker)
 
 **1. Clone the repository**
 
@@ -178,7 +230,7 @@ python manage.py migrate
 
 ---
 
-## Running Locally
+## Running Locally (without Docker)
 
 ```bash
 python manage.py runserver
@@ -206,6 +258,7 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 DB_NAME=pokedex
 DB_USER=pokedex_user
 DB_PASSWORD=your-db-password
+DB_ROOT_PASSWORD=your-db-root-password
 DB_HOST=localhost
 DB_PORT=3306
 
@@ -216,6 +269,8 @@ REDIS_DB=0
 ```
 
 > **Warning:** never commit the `.env` file. It is already listed in `.gitignore`.
+
+> **Note:** `DB_ROOT_PASSWORD` is only used by the MySQL container itself (its root superuser account, set up in `docker-compose.yml`) — Django never uses it. `DB_HOST`/`DB_PORT`/`REDIS_HOST`/`REDIS_PORT` here are for running the app *without* Docker; when running via `docker compose`, those four are overridden automatically (see [Running with Docker](#running-with-docker)).
 
 To generate a Django `SECRET_KEY`:
 
