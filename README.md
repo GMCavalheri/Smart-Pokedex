@@ -53,6 +53,7 @@ The Smart Pokédex is made up of two main pages:
 | Python Requests | HTTP requests to the external APIs |
 | Django Sessions | Passing data between views via POST/redirect/GET |
 | MySQL | Relational database (via PyMySQL) |
+| Redis | Caching layer for PokéAPI responses |
 
 ---
 
@@ -81,6 +82,9 @@ Secrets (Django `SECRET_KEY`, `OPENROUTER_API_KEY`) and environment-dependent se
 
 ### MySQL via PyMySQL
 The project uses MySQL as its relational database, connected through `PyMySQL` — a pure-Python driver. Unlike `mysqlclient` (the more common choice), it needs no native build tools to install, so it works the same way on every OS and inside Docker without extra system packages. Database connection settings (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`) come from the `.env` file.
+
+### Redis cache for PokéAPI responses
+The home page originally fetched all 151 Pokémon from the PokéAPI sequentially, one HTTP request at a time, on every single page load — around 18 seconds per load in testing. `pokedex/services/pokeapi.py` now checks Redis (via Django's built-in cache framework, `django.core.cache.backends.redis.RedisCache`) before making a request, and caches the parsed result for 24 hours (a Pokémon's base stats/types/sprite essentially never change). After the first load, subsequent loads read entirely from Redis — down to tens of milliseconds. Redis connection settings (`REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`) come from the `.env` file.
 
 ---
 
@@ -129,7 +133,7 @@ pokedex/
 - Python 3.10 or higher
 - Git
 - pip
-- A running MySQL server (a `docker-compose` setup for this is coming in a later step)
+- A running MySQL server and a running Redis server (a `docker-compose` setup for both is coming in a later step)
 - An account and API key from [OpenRouter](https://openrouter.ai/)
 - Internet connection (to consume the PokéAPI and OpenRouter)
 
@@ -164,7 +168,7 @@ pip install -r requirements.txt
 
 **4. Configure environment variables**
 
-Create a `.env` file in the project root (see the [Environment Variables](#environment-variables) section). Make sure `DB_*` points to a running MySQL server with a matching database and user already created.
+Create a `.env` file in the project root (see the [Environment Variables](#environment-variables) section). Make sure `DB_*` points to a running MySQL server with a matching database and user already created, and `REDIS_*` points to a running Redis server.
 
 **5. Run migrations**
 
@@ -204,6 +208,11 @@ DB_USER=pokedex_user
 DB_PASSWORD=your-db-password
 DB_HOST=localhost
 DB_PORT=3306
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
 ```
 
 > **Warning:** never commit the `.env` file. It is already listed in `.gitignore`.

@@ -1,13 +1,18 @@
 """Thin client around PokéAPI, shared by the home and pokemon_detail apps.
 
 Centralizing the fetch + parse logic here avoids duplicating it across
-views and keeps a single place to add caching later.
+views and keeps a single place to add caching.
 """
 import requests
+from django.core.cache import cache
 
 POKEAPI_BASE_URL = "https://pokeapi.co/api/v2/pokemon"
 MAX_STAT_VALUE = 255
 REQUEST_TIMEOUT = 10
+
+# A Pokémon's base stats/types/sprite never change, so a long TTL is safe —
+# this just bounds how long a stale Redis entry could theoretically live.
+CACHE_TTL_SECONDS = 60 * 60 * 24  # 24 hours
 
 
 def _stat_percent(base_stat):
@@ -41,13 +46,22 @@ def _parse_pokemon(data):
 
 
 def fetch_pokemon(pokemon_id_or_name):
-    """Fetch and parse a single Pokémon by numeric id or name."""
+    """Fetch and parse a single Pokémon by numeric id or name, using Redis as a cache."""
+    cache_key = f'pokemon:{str(pokemon_id_or_name).lower()}'
+
+    pokemon = cache.get(cache_key)
+    if pokemon is not None:
+        return pokemon
+
     response = requests.get(
         f'{POKEAPI_BASE_URL}/{str(pokemon_id_or_name).lower()}',
         timeout=REQUEST_TIMEOUT,
     )
     response.raise_for_status()
-    return _parse_pokemon(response.json())
+    pokemon = _parse_pokemon(response.json())
+
+    cache.set(cache_key, pokemon, CACHE_TTL_SECONDS)
+    return pokemon
 
 
 def fetch_pokemon_range(start=1, end=151):
