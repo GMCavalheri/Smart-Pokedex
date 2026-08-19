@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ pokemon.name|capfirst }} — Análise</title>
+  <title>{{ pokemon.name|capfirst }} — Analysis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
@@ -12,13 +12,13 @@
 </head>
 <body>
 
-  <!-- Scan lines CRT -->
+  <!-- CRT scan lines -->
   <div class="scanlines" aria-hidden="true"></div>
 
-  <!-- Ruído de fundo decorativo -->
+  <!-- Decorative background noise -->
   <div class="bg-noise" aria-hidden="true"></div>
 
-  <!-- ══════════ WRAPPER PRINCIPAL ══════════ -->
+  <!-- ══════════ MAIN WRAPPER ══════════ -->
   <div class="page-wrapper">
 
     <!-- ── TOPBAR ── -->
@@ -28,35 +28,35 @@
         <span>POKÉDEX</span>
       </a>
       <div class="topbar-title">
-        <span class="topbar-label">ANÁLISE //</span>
+        <span class="topbar-label">ANALYSIS //</span>
         <span class="topbar-name">{{ pokemon.name|upper }}</span>
       </div>
       <div class="topbar-id">#{{ pokemon.id|stringformat:"03d" }}</div>
     </header>
 
-    <!-- ── COLUNA CENTRAL ── -->
+    <!-- ── MAIN COLUMN ── -->
     <main class="main-col">
 
       <!-- ══════════════════════════════════
-           BLOCO 1 — DADOS DO POKÉMON
+           BLOCK 1 — POKÉMON DATA
            ══════════════════════════════════ -->
-      <section class="card card--data" aria-label="Dados do Pokémon">
+      <section class="card card--data" aria-label="Pokémon data">
 
         <div class="card-header">
-          <span class="card-eyebrow">01 / FICHA</span>
+          <span class="card-eyebrow">01 / PROFILE</span>
           <span class="card-title">{{ pokemon.name|upper }}</span>
           <div class="header-line" aria-hidden="true"></div>
         </div>
 
         <div class="data-body">
 
-          <!-- Sprite + identidade -->
+          <!-- Sprite + identity -->
           <div class="sprite-col">
             <div class="sprite-frame">
               <div class="sprite-glow" aria-hidden="true"></div>
               <img
                 src="{{ pokemon.sprite_url }}"
-                alt="Sprite de {{ pokemon.name }}"
+                alt="{{ pokemon.name }} sprite"
                 class="detail-sprite"
               />
               <div class="sprite-scanline" aria-hidden="true"></div>
@@ -72,30 +72,30 @@
             </div>
           </div>
 
-          <!-- Stats e atributos -->
+          <!-- Stats and attributes -->
           <div class="stats-col">
 
-            <!-- Atributos básicos -->
+            <!-- Basic attributes -->
             <div class="attr-grid">
               <div class="attr-item">
-                <span class="attr-label">ALTURA</span>
+                <span class="attr-label">HEIGHT</span>
                 <span class="attr-value">{{ pokemon.height_m }} m</span>
               </div>
               <div class="attr-item">
-                <span class="attr-label">PESO</span>
+                <span class="attr-label">WEIGHT</span>
                 <span class="attr-value">{{ pokemon.weight_kg }} kg</span>
               </div>
               <div class="attr-item">
-                <span class="attr-label">EXPERIÊNCIA</span>
+                <span class="attr-label">EXPERIENCE</span>
                 <span class="attr-value">{{ pokemon.base_experience }}</span>
               </div>
               <div class="attr-item">
-                <span class="attr-label">HABILIDADE</span>
+                <span class="attr-label">ABILITY</span>
                 <span class="attr-value">{{ pokemon.ability|default:"—" }}</span>
               </div>
             </div>
 
-            <!-- Barras de stats -->
+            <!-- Stat bars -->
             <div class="stat-list">
               {% for stat in pokemon.stats %}
               <div class="stat-row">
@@ -116,13 +116,13 @@
       </section>
 
       <!-- ══════════════════════════════════
-           BLOCO 2 — PERGUNTA AO MODELO
+           BLOCK 2 — ASK THE MODEL
            ══════════════════════════════════ -->
-      <section class="card card--query" aria-label="Perguntar ao modelo">
+      <section class="card card--query" aria-label="Ask the model">
 
         <div class="card-header">
-          <span class="card-eyebrow">02 / CONSULTA</span>
-          <span class="card-title">PERGUNTE AO MODELO</span>
+          <span class="card-eyebrow">02 / QUERY</span>
+          <span class="card-title">ASK THE MODEL</span>
           <div class="header-line" aria-hidden="true"></div>
         </div>
 
@@ -138,7 +138,7 @@
 
           <div class="textarea-wrap">
             <label for="userQuestion" class="query-label">
-              <span class="label-prompt">›</span> INSIRA SUA PERGUNTA SOBRE {{ pokemon.name|upper }}
+              <span class="label-prompt">›</span> ENTER YOUR QUESTION ABOUT {{ pokemon.name|upper }}
             </label>
             <textarea
               id="userQuestion"
@@ -146,7 +146,7 @@
               class="query-input"
               rows="4"
               maxlength="600"
-              placeholder="Ex: Quais são as melhores estratégias de batalha para este Pokémon?"
+              placeholder="E.g.: What are the best battle strategies for this Pokémon?"
               required
             >{{ question|default:'' }}</textarea>
             <div class="char-counter">
@@ -157,10 +157,10 @@
           <div class="query-footer">
             <div class="model-badge">
               <span class="model-dot" aria-hidden="true"></span>
-              OPENROUTER · ATIVO
+              OPENROUTER · ACTIVE
             </div>
             <button type="submit" class="send-btn" id="sendBtn">
-              <span class="send-label">ENVIAR CONSULTA</span>
+              <span class="send-label">SEND QUERY</span>
               <span class="send-icon" aria-hidden="true">▶</span>
             </button>
           </div>
@@ -169,22 +169,22 @@
       </section>
 
       <!-- ══════════════════════════════════
-           BLOCO 3 — RESPOSTA DO MODELO
+           BLOCK 3 — MODEL RESPONSE
            ══════════════════════════════════ -->
-      <section class="card card--response {% if not ai_response %}card--empty{% endif %}" aria-label="Resposta do modelo">
+      <section class="card card--response {% if not ai_response %}card--empty{% endif %}" aria-label="Model response">
 
         <div class="card-header">
-          <span class="card-eyebrow">03 / RESPOSTA</span>
-          <span class="card-title">OUTPUT DO MODELO</span>
+          <span class="card-eyebrow">03 / RESPONSE</span>
+          <span class="card-title">MODEL OUTPUT</span>
           <div class="header-line" aria-hidden="true"></div>
         </div>
 
         <div class="response-body">
 
           {% if ai_response %}
-            <!-- Resposta disponível -->
+            <!-- Response available -->
             <div class="response-meta">
-              <span class="response-tag">MODELO: {{ model_name|default:"IA" }}</span>
+              <span class="response-tag">MODEL: {{ model_name|default:"AI" }}</span>
               <span class="response-tag">{{ response_time|default:"" }}</span>
             </div>
             <div class="response-text" id="responseText">
@@ -192,21 +192,21 @@
             </div>
 
           {% elif error_message %}
-            <!-- Estado de erro -->
+            <!-- Error state -->
             <div class="response-error">
               <span class="error-icon" aria-hidden="true">⚠</span>
-              <p class="error-title">FALHA NA CONSULTA</p>
+              <p class="error-title">QUERY FAILED</p>
               <p class="error-detail">{{ error_message }}</p>
             </div>
 
           {% else %}
-            <!-- Estado inicial (vazio) -->
+            <!-- Initial (empty) state -->
             <div class="response-idle">
               <div class="idle-icon" aria-hidden="true">
                 <span class="idle-cursor">_</span>
               </div>
-              <p class="idle-title">AGUARDANDO CONSULTA</p>
-              <p class="idle-sub">Faça uma pergunta no bloco acima para receber a análise do modelo.</p>
+              <p class="idle-title">WAITING FOR QUERY</p>
+              <p class="idle-sub">Ask a question in the block above to get the model's analysis.</p>
             </div>
 
           {% endif %}
@@ -216,7 +216,7 @@
 
     </main>
 
-    <!-- ── RODAPÉ DECORATIVO ── -->
+    <!-- ── DECORATIVE FOOTER ── -->
     <footer class="page-footer" aria-hidden="true">
       <span>PROF. OAK LABS · MODEL DEX-151 · POKÉDEX ANALYSIS SYSTEM</span>
     </footer>
@@ -224,7 +224,7 @@
   </div><!-- /page-wrapper -->
 
   <script>
-    // Contador de caracteres no textarea
+    // Character counter for the textarea
     const textarea = document.getElementById('userQuestion');
     const counter  = document.getElementById('charCount');
 
@@ -234,14 +234,14 @@
       update();
     }
 
-    // Feedback visual no botão de envio
+    // Visual feedback on the submit button
     const form    = document.getElementById('queryForm');
     const sendBtn = document.getElementById('sendBtn');
 
     if (form && sendBtn) {
       form.addEventListener('submit', () => {
         sendBtn.classList.add('send-btn--loading');
-        sendBtn.querySelector('.send-label').textContent = 'PROCESSANDO...';
+        sendBtn.querySelector('.send-label').textContent = 'PROCESSING...';
         sendBtn.disabled = true;
       });
     }

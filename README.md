@@ -1,139 +1,145 @@
-# Pokédex Inteligente
+# Smart Pokédex
 
-Aplicação web visual construída com Django, HTML e CSS que exibe informações de diferentes Pokémons via **PokéAPI** e permite ao usuário interagir com uma **LLM via OpenRouter** para tirar dúvidas sobre o Pokémon selecionado.
+A visual web application built with Django, HTML and CSS that displays Pokémon information via the **PokéAPI** and lets the user interact with an **LLM through OpenRouter** to ask questions about the selected Pokémon.
 
-![Página Home](/imgs/pokedex_home.png)
-
----
-
-## Índice
-
-- [Visão Geral](#visão-geral)
-- [Funcionalidades](#funcionalidades)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Decisões Técnicas](#decisões-técnicas)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Pré-requisitos](#pré-requisitos)
-- [Instalação e Configuração](#instalação-e-configuração)
-- [Como Rodar Localmente](#como-rodar-localmente)
-- [Variáveis de Ambiente](#variáveis-de-ambiente)
+![Home page](/imgs/pokedex_home.png)
 
 ---
 
-## Visão Geral
+## Table of Contents
 
-A Pokédex Inteligente é composta por duas páginas principais:
-
-- **Pokédex (`/home/`)** — lista visual dos Pokémons com sprite, tipos e barras de atributos, consumindo dados em tempo real da PokéAPI.
-- **Detalhe (`/pokemon/<id>/`)** — ficha completa do Pokémon selecionado, com uma área de consulta onde o usuário pode fazer perguntas a uma LLM e visualizar a resposta gerada pelo modelo.
-
-![Página Analise](/imgs/Pokedex_analise.png)
-
----
-
-## Funcionalidades
-
-- Listagem de Pokémons com sprite, número, tipos e mini barras de HP e ATK
-- Página de detalhe com ficha completa: altura, peso, habilidade, experiência base e barras de todos os stats
-- Área de consulta com envio de perguntas para uma LLM via OpenRouter
-- Exibição da resposta do modelo na mesma página
-- Identidade visual inspirada na Pokédex clássica com estética de terminal CRT
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Technical Decisions](#technical-decisions)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Running Locally](#running-locally)
+- [Environment Variables](#environment-variables)
 
 ---
 
-## Tecnologias Utilizadas
+## Overview
 
-| Tecnologia | Função |
+The Smart Pokédex is made up of two main pages:
+
+- **Pokédex (`/home/`)** — a visual list of Pokémon with sprite, types and attribute bars, consuming real-time data from the PokéAPI.
+- **Detail (`/pokemon/<id>/`)** — a full profile of the selected Pokémon, with a query area where the user can ask an LLM questions and see the model's generated answer.
+
+![Analysis page](/imgs/Pokedex_analise.png)
+
+---
+
+## Features
+
+- List of Pokémon with sprite, number, types and mini HP/ATK bars
+- Detail page with a full profile: height, weight, ability, base experience and bars for every stat
+- Query area to send questions to an LLM via OpenRouter
+- The model's answer is displayed on the same page
+- Visual identity inspired by the classic Pokédex, with a CRT terminal aesthetic
+
+---
+
+## Tech Stack
+
+| Technology | Role |
 |---|---|
-| Python 3.x | Linguagem principal |
-| Django | Framework web (views, urls, templates, sessions) |
-| HTML + CSS | Interface e identidade visual |
-| PokéAPI | Fonte dos dados dos Pokémons |
-| OpenRouter API | Acesso à LLM para responder perguntas |
-| Python Requests | Requisições HTTP para as APIs externas |
-| Django Sessions | Passagem de dados entre views via POST/redirect/GET |
+| Python 3.x | Main language |
+| Django | Web framework (views, urls, templates, sessions) |
+| HTML + CSS | Interface and visual identity |
+| PokéAPI | Source of Pokémon data |
+| OpenRouter API | Access to the LLM that answers questions |
+| Python Requests | HTTP requests to the external APIs |
+| Django Sessions | Passing data between views via POST/redirect/GET |
 
 ---
 
-## Decisões Técnicas
+## Technical Decisions
 
-### Separação em apps Django
-O projeto foi dividido em apps com responsabilidades distintas, seguindo a convenção Django de modularização. Cada app possui seu próprio `views.py` e `urls.py`, e o arquivo `urls.py` principal delega as rotas para cada app via `include()`.
+### Split into Django apps
+The project is split into apps with distinct responsibilities, following Django's modularization convention. Each app has its own `views.py` and `urls.py`, and the main `urls.py` delegates routes to each app via `include()`.
 
-### Consumo de API no servidor
-As chamadas à PokéAPI e ao OpenRouter são feitas no servidor (nas views Django), não no navegador. Isso evita expor a chave da API do OpenRouter no frontend e centraliza o tratamento de erros.
+### Shared PokéAPI service layer
+Fetching and parsing PokéAPI data lives in a single module (`pokedex/services/pokeapi.py`), reused by both the `home` and `pokemon_detail` apps, instead of being duplicated per view.
 
-### Padrão POST → Redirect → GET
-O formulário de consulta ao modelo segue o padrão PRG (*Post/Redirect/Get*): o POST é processado pela view `pokemon_query`, que salva a resposta na session do Django e redireciona para `pokemon_detail` via GET. Isso evita o reenvio do formulário ao recarregar a página.
+### API calls happen on the server
+Calls to the PokéAPI and OpenRouter are made server-side (in Django views), not in the browser. This avoids exposing the OpenRouter API key on the frontend and centralizes error handling.
 
-### Django Sessions para passagem de dados
-A resposta da LLM é temporariamente armazenada na session do Django e consumida com `.pop()` na view de detalhe, garantindo que a resposta apareça apenas uma vez e seja limpa automaticamente após a exibição.
+### POST → Redirect → GET pattern
+The model query form follows the PRG pattern (*Post/Redirect/Get*): the POST is handled by the `pokemon_query` view, which saves the answer in the Django session and redirects to `pokemon_detail` via GET. This avoids resubmitting the form on page reload.
 
-### Templates sem JavaScript externo
-Toda a interface é construída com HTML e CSS puros, sem frameworks frontend. O único JavaScript presente é inline e mínimo: contador de caracteres no textarea e feedback visual no botão de envio.
+### Django Sessions for passing data
+The LLM's answer is temporarily stored in the Django session and consumed with `.pop()` in the detail view, guaranteeing it's shown only once and cleared automatically afterwards.
+
+### Templates without external JavaScript
+The whole interface is built with plain HTML and CSS, with no frontend framework. The only JavaScript present is inline and minimal: a character counter for the textarea and visual feedback on the submit button.
+
+### Configuration via environment variables
+Secrets (Django `SECRET_KEY`, `OPENROUTER_API_KEY`) and environment-dependent settings (`DEBUG`, `ALLOWED_HOSTS`) are read from a local `.env` file via `python-dotenv`, never hardcoded in source.
 
 ---
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
-pokedex_inteligente/
+pokedex/
 │
-├── pokedex_inteligente/        # Configurações globais do projeto
+├── pokedex/                    # Global project configuration
 │   ├── settings.py
-│   ├── urls.py                 # Roteamento principal
-│   └── wsgi.py
+│   ├── urls.py                 # Main routing
+│   ├── wsgi.py / asgi.py
+│   └── services/
+│       └── pokeapi.py          # Shared PokéAPI client
 │
-├── home/                       # App da lista (Pokédex)
-│   ├── views.py                # View da listagem
-│   ├── urls.py
+├── home/                       # Pokédex list app
+│   ├── views.py
 │   └── templates/
 │       └── pokedex.html
 │
-├── pokemon_detail/              # App de detalhe e consulta
-│   ├── views.py                # Views pokemon_detail e pokemon_query
-│   ├── urls.py
+├── pokemon_detail/             # Detail app
+│   ├── views.py
 │   └── templates/
 │       └── pokemon_detail.html
-
-├── pokemon_query/              # App de consulta e LLM
-│   ├── views.py                # Views pokemon_query
-│   ├── urls.py
-│   ├── openrouter.py           # Integração com a API do OpenRouter
-│   
 │
-├── static/
-│   └── css/
-│       ├── pokedex.css
-│       └── pokemon_detail.css
+├── pokemon_query/              # LLM query app
+│   ├── views.py
+│   └── openrouter.py           # OpenRouter API integration
 │
-├── .env                        # Variáveis de ambiente (não versionar)
+├── templates/
+│   └── static/
+│       └── css/
+│           ├── pokedex.css
+│           └── pokemon_detail.css
+│
+├── .env                        # Environment variables (not versioned)
+├── .env.example                # Template for .env
 ├── requirements.txt
 └── manage.py
 ```
 
 ---
 
-## Pré-requisitos
+## Prerequisites
 
-- Python 3.10 ou superior
+- Python 3.10 or higher
 - Git
 - pip
-- Conta e chave de API no [OpenRouter](https://openrouter.ai/)
-- Conexão com internet (para consumo da PokéAPI e OpenRouter)
+- An account and API key from [OpenRouter](https://openrouter.ai/)
+- Internet connection (to consume the PokéAPI and OpenRouter)
 
 ---
 
-## Instalação e Configuração
+## Installation and Setup
 
-**1. Clone o repositório**
+**1. Clone the repository**
 
 ```bash
 git clone https://github.com/GMCavalheri/Desafio-Tecnico---Estagio-em-Engenharia-de-Software-levva pokedex-inteligente
 cd pokedex-inteligente
 ```
 
-**2. Crie e ative um ambiente virtual**
+**2. Create and activate a virtual environment**
 
 ```bash
 python -m venv venv
@@ -145,50 +151,52 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-**3. Instale as dependências**
+**3. Install dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Execute as migrações**
+**4. Run migrations**
 
 ```bash
 python manage.py migrate
 ```
 
-**5. Configure as variáveis de ambiente (opcional atualmente)**
+**5. Configure environment variables**
 
-Crie um arquivo `.env` na raiz do projeto (veja a seção [Variáveis de Ambiente](#variáveis-de-ambiente)).
-
+Create a `.env` file in the project root (see the [Environment Variables](#environment-variables) section).
 
 ---
 
-## Como Rodar Localmente
+## Running Locally
 
 ```bash
 python manage.py runserver
 ```
 
-Acesse no navegador: [http://127.0.0.1:8000/home/](http://127.0.0.1:8000/home/)
+Open in your browser: [http://127.0.0.1:8000/home/](http://127.0.0.1:8000/home/)
 
 ---
 
-## Variáveis de Ambiente
+## Environment Variables
 
-Essas variáveis de ambiente já foram configuradas por padrão, para facilitar os testes em diferentes computadores. Porém, é possível alterá-las, como mostrado abaixo. É considerado uma boa prática.
+Copy `.env.example` to `.env` and fill in your own values:
 
-Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
-
-```env
-SECRET_KEY=sua-secret-key-django-aqui
-DEBUG=True
-OPENROUTER_API_KEY=sua-chave-openrouter-aqui
+```bash
+cp .env.example .env
 ```
 
-> **Atenção:** nunca versione o arquivo `.env`. Adicione-o ao `.gitignore`.
+```env
+SECRET_KEY=your-django-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+OPENROUTER_API_KEY=your-openrouter-api-key-here
+```
 
-Para gerar uma `SECRET_KEY` Django:
+> **Warning:** never commit the `.env` file. It is already listed in `.gitignore`.
+
+To generate a Django `SECRET_KEY`:
 
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,16 +12,16 @@
 </head>
 <body>
 
-  <!-- ── SCAN LINES (atmosfera CRT) ── -->
+  <!-- ── SCAN LINES (CRT atmosphere) ── -->
   <div class="scanlines" aria-hidden="true"></div>
 
-  <!-- ══════════════ SHELL DA POKÉDEX ══════════════ -->
+  <!-- ══════════════ POKÉDEX SHELL ══════════════ -->
   <div class="pokedex-shell">
 
-    <!-- ── PAINEL ESQUERDO ── -->
+    <!-- ── LEFT PANEL ── -->
     <div class="panel panel--left">
 
-      <!-- Câmera / olho superior -->
+      <!-- Top camera / eye -->
       <div class="camera-cluster">
         <div class="camera-eye">
           <div class="camera-inner"></div>
@@ -34,10 +34,10 @@
         </div>
       </div>
 
-      <!-- Tela principal -->
+      <!-- Main screen -->
       <div class="screen-bezel">
         <div class="screen-inner">
-          <!-- Cabeçalho da tela -->
+          <!-- Screen header -->
           <div class="screen-header">
             <span class="screen-label">POKÉDEX</span>
             <span class="screen-count">
@@ -45,7 +45,7 @@
             </span>
           </div>
 
-          <!-- Lista de Pokémons -->
+          <!-- Pokémon list -->
           <ul class="pokemon-list" id="pokemonList">
             {% for pokemon in pokemons %}
             <li class="pokemon-card">
@@ -89,23 +89,23 @@
               </a>
             </li>
             {% empty %}
-            <!-- Estado vazio: exibido quando não há dados -->
+            <!-- Empty state: shown when there is no data -->
             <li class="empty-state">
               <div class="empty-icon">?</div>
-              <p class="empty-title">Nenhum Pokémon encontrado</p>
-              <p class="empty-sub">Conecte-se à PokéAPI para carregar os dados.</p>
+              <p class="empty-title">No Pokémon found</p>
+              <p class="empty-sub">Connect to the PokéAPI to load the data.</p>
             </li>
             {% endfor %}
           </ul>
 
-          <!-- Rodapé da tela -->
+          <!-- Screen footer -->
           <div class="screen-footer">
-            <span class="footer-text">▲▼ NAVEGAR  &nbsp;  ● SELECIONAR</span>
+            <span class="footer-text">▲▼ NAVIGATE  &nbsp;  ● SELECT</span>
           </div>
         </div>
       </div>
 
-      <!-- Decoração inferior esquerdo -->
+      <!-- Bottom-left decoration -->
       <div class="deco-strip">
         <div class="dpad">
           <div class="dpad-h"></div>
@@ -114,16 +114,16 @@
       </div>
     </div>
 
-    <!-- ── DOBRADIÇA ── -->
+    <!-- ── HINGE ── -->
     <div class="hinge">
       <div class="hinge-bolt"></div>
       <div class="hinge-bolt"></div>
     </div>
 
-    <!-- ── PAINEL DIREITO ── -->
+    <!-- ── RIGHT PANEL ── -->
     <div class="panel panel--right">
 
-      <!-- Tela auxiliar / decorativa -->
+      <!-- Auxiliary / decorative screen -->
       <div class="aux-screen-bezel">
         <div class="aux-screen">
           <p class="aux-label">STATUS</p>
@@ -135,13 +135,13 @@
         </div>
       </div>
 
-      <!-- Botões decorativos -->
+      <!-- Decorative buttons -->
       <div class="btn-cluster">
         <button class="btn-round btn--red" aria-label="A" tabindex="-1">A</button>
         <button class="btn-round btn--blue" aria-label="B" tabindex="-1">B</button>
       </div>
 
-      <!-- Texto decorativo lateral -->
+      <!-- Decorative side text -->
       <div class="side-text">
         <span>PROF. GABRIEL LABS</span>
         <span>MODEL LEVVA-26</span>
@@ -159,7 +159,7 @@
     </div>
   </div>
 
-  <!-- ── REFLEXO DE CHÃO ── -->
+  <!-- ── FLOOR REFLECTION ── -->
   <div class="floor-reflection" aria-hidden="true"></div>
 
 </body>
