@@ -101,7 +101,7 @@ Three services run together: `web` (this Django app), `db` (MySQL) and `redis` (
 ## Project Structure
 
 ```
-pokedex/
+Smart-Pokedex/
 │
 ├── pokedex/                    # Global project configuration
 │   ├── settings.py
@@ -166,8 +166,8 @@ This is the fastest way to get everything running — Django, MySQL and Redis �
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/GMCavalheri/Desafio-Tecnico---Estagio-em-Engenharia-de-Software-levva pokedex-inteligente
-cd pokedex-inteligente
+git clone https://github.com/GMCavalheri/Smart-Pokedex
+cd Smart-Pokedex
 ```
 
 **2. Configure environment variables**
