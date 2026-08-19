@@ -52,6 +52,7 @@ The Smart Pokédex is made up of two main pages:
 | OpenRouter API | Access to the LLM that answers questions |
 | Python Requests | HTTP requests to the external APIs |
 | Django Sessions | Passing data between views via POST/redirect/GET |
+| MySQL | Relational database (via PyMySQL) |
 
 ---
 
@@ -76,7 +77,10 @@ The LLM's answer is temporarily stored in the Django session and consumed with `
 The whole interface is built with plain HTML and CSS, with no frontend framework. The only JavaScript present is inline and minimal: a character counter for the textarea and visual feedback on the submit button.
 
 ### Configuration via environment variables
-Secrets (Django `SECRET_KEY`, `OPENROUTER_API_KEY`) and environment-dependent settings (`DEBUG`, `ALLOWED_HOSTS`) are read from a local `.env` file via `python-dotenv`, never hardcoded in source.
+Secrets (Django `SECRET_KEY`, `OPENROUTER_API_KEY`) and environment-dependent settings (`DEBUG`, `ALLOWED_HOSTS`, database credentials) are read from a local `.env` file via `python-dotenv`, never hardcoded in source.
+
+### MySQL via PyMySQL
+The project uses MySQL as its relational database, connected through `PyMySQL` — a pure-Python driver. Unlike `mysqlclient` (the more common choice), it needs no native build tools to install, so it works the same way on every OS and inside Docker without extra system packages. Database connection settings (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`) come from the `.env` file.
 
 ---
 
@@ -125,6 +129,7 @@ pokedex/
 - Python 3.10 or higher
 - Git
 - pip
+- A running MySQL server (a `docker-compose` setup for this is coming in a later step)
 - An account and API key from [OpenRouter](https://openrouter.ai/)
 - Internet connection (to consume the PokéAPI and OpenRouter)
 
@@ -157,15 +162,15 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**4. Run migrations**
+**4. Configure environment variables**
+
+Create a `.env` file in the project root (see the [Environment Variables](#environment-variables) section). Make sure `DB_*` points to a running MySQL server with a matching database and user already created.
+
+**5. Run migrations**
 
 ```bash
 python manage.py migrate
 ```
-
-**5. Configure environment variables**
-
-Create a `.env` file in the project root (see the [Environment Variables](#environment-variables) section).
 
 ---
 
@@ -192,6 +197,13 @@ SECRET_KEY=your-django-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 OPENROUTER_API_KEY=your-openrouter-api-key-here
+
+# MySQL
+DB_NAME=pokedex
+DB_USER=pokedex_user
+DB_PASSWORD=your-db-password
+DB_HOST=localhost
+DB_PORT=3306
 ```
 
 > **Warning:** never commit the `.env` file. It is already listed in `.gitignore`.
