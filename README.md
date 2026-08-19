@@ -17,6 +17,7 @@ A visual web application built with Django, HTML and CSS that displays Pokémon 
 - [Running with Docker](#running-with-docker)
 - [Installation and Setup (without Docker)](#installation-and-setup-without-docker)
 - [Running Locally (without Docker)](#running-locally-without-docker)
+- [Running Tests](#running-tests)
 - [Environment Variables](#environment-variables)
 
 ---
@@ -56,6 +57,7 @@ The Smart Pokédex is made up of two main pages:
 | MySQL | Relational database (via PyMySQL) |
 | Redis | Caching layer for PokéAPI responses |
 | Docker + Docker Compose | Containerized app, database and cache for a one-command setup |
+| pytest + pytest-django | Automated test suite |
 
 ---
 
@@ -91,6 +93,9 @@ The home page originally fetched all 151 Pokémon from the PokéAPI sequentially
 ### Containerized with Docker Compose
 Three services run together: `web` (this Django app), `db` (MySQL) and `redis` (Redis). `db` and `redis` don't publish ports to the host — only `web` does — since only `web` needs to reach them, and this avoids clashing with any MySQL/Redis you may already have running locally. `web` waits for `db` and `redis` to report healthy (via Compose's `depends_on: condition: service_healthy`) before starting, and `entrypoint.sh` runs `manage.py migrate` automatically on every container start, so the schema is always up to date. Host/port values for `DB_HOST`/`REDIS_HOST` are overridden directly in `docker-compose.yml` (to the service names `db`/`redis`) rather than taken from `.env`, since `.env`'s `127.0.0.1` only makes sense for running the app outside Docker.
 
+### Tests run against SQLite and a local-memory cache, not the real services
+`pokedex/settings_test.py` swaps `DATABASES` to an in-memory SQLite database and `CACHES` to Django's `LocMemCache`, used only when running `pytest` (wired up in `pytest.ini`). Since the app has no MySQL-specific SQL and nothing that depends on Redis's actual behavior, this keeps the test suite fast and independent of Docker/MySQL/Redis being up — important both for a quick local feedback loop and for CI. Every PokéAPI and OpenRouter call is mocked (`unittest.mock.patch`) rather than hitting the real network, so tests can't fail because of an outage or rate limit on either external service.
+
 ---
 
 ## Project Structure
@@ -100,24 +105,30 @@ pokedex/
 │
 ├── pokedex/                    # Global project configuration
 │   ├── settings.py
+│   ├── settings_test.py        # Settings used only by pytest (SQLite + local-memory cache)
 │   ├── urls.py                 # Main routing
 │   ├── wsgi.py / asgi.py
 │   └── services/
-│       └── pokeapi.py          # Shared PokéAPI client
+│       ├── pokeapi.py          # Shared PokéAPI client
+│       └── test_pokeapi.py
 │
 ├── home/                       # Pokédex list app
 │   ├── views.py
+│   ├── test_views.py
 │   └── templates/
 │       └── pokedex.html
 │
 ├── pokemon_detail/             # Detail app
 │   ├── views.py
+│   ├── test_views.py
 │   └── templates/
 │       └── pokemon_detail.html
 │
 ├── pokemon_query/              # LLM query app
 │   ├── views.py
-│   └── openrouter.py           # OpenRouter API integration
+│   ├── test_views.py
+│   ├── openrouter.py           # OpenRouter API integration
+│   └── test_openrouter.py
 │
 ├── templates/
 │   └── static/
@@ -125,12 +136,14 @@ pokedex/
 │           ├── pokedex.css
 │           └── pokemon_detail.css
 │
-├── .env                # Environment variables (not versioned)
-├── .env.example        # Template for .env
-├── Dockerfile          # Image for the web service
-├── entrypoint.sh       # Runs migrations, then starts the app
-├── docker-compose.yml  # Wires up web + MySQL + Redis
+├── .env                    # Environment variables (not versioned)
+├── .env.example            # Template for .env
+├── Dockerfile              # Image for the web service
+├── entrypoint.sh           # Runs migrations, then starts the app
+├── docker-compose.yml      # Wires up web + MySQL + Redis
+├── pytest.ini              # pytest / pytest-django configuration
 ├── requirements.txt
+├── requirements-dev.txt    # requirements.txt + pytest tooling
 └── manage.py
 ```
 
@@ -237,6 +250,36 @@ python manage.py runserver
 ```
 
 Open in your browser: [http://127.0.0.1:8000/home/](http://127.0.0.1:8000/home/)
+
+---
+
+## Running Tests
+
+The test suite uses `pytest` + `pytest-django`, and needs no external services — no MySQL, no Redis, no Docker. Tests run against an in-memory SQLite database and Django's local-memory cache instead (`pokedex/settings_test.py`), and every call to the PokéAPI or OpenRouter is mocked, so the suite is fast and fully offline.
+
+**1. Install the dev dependencies** (adds `pytest`, `pytest-django` and `pytest-cov` on top of `requirements.txt`)
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+**2. Run the suite**
+
+```bash
+pytest
+```
+
+**3. (Optional) Run with a coverage report**
+
+```bash
+pytest --cov=home --cov=pokemon_detail --cov=pokemon_query --cov=pokedex/services --cov-report=term-missing
+```
+
+Test files live next to the code they cover, named `test_*.py`:
+
+- `pokedex/services/test_pokeapi.py` — parsing logic, stat percentage math, and that a second call for the same Pokémon is served from cache instead of hitting the network again.
+- `pokemon_query/test_openrouter.py` — prompt building and the OpenRouter request/response handling.
+- `home/test_views.py`, `pokemon_detail/test_views.py`, `pokemon_query/test_views.py` — each view's behavior through Django's test client, including the session-based POST → Redirect → GET flow and its error path.
 
 ---
 
